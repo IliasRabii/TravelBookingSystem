@@ -1,4 +1,21 @@
-# Getting Started
+# 1) (option HTTPS) définir l'auteur local et supprimer les identifiants Windows
+git config user.name "IliasRabii"
+git config user.email "your-email@example.com"
+
+# Supprimer l'identifiant enregistré pour github.com depuis Windows Credential Manager (ou ouvrez GUI Credential Manager et supprimez l'entrée git:github.com)
+cmdkey /delete:git:https://github.com
+
+# Retenter le push (on vous demandera le nom d'utilisateur et le PAT)
+git push -u origin main
+
+# 2) (option SSH) générer une clé SSH, l'ajouter à l'agent, changer le remote et pousser
+ssh-keygen -t ed25519 -C "your-email@example.com"     # suivre les invites
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/id_ed25519
+
+# Copier le contenu de ~/.ssh/id_ed25519.pub et l'ajouter à https://github.com/settings/ssh-keys
+git remote set-url origin git@github.com:IliasRabii/TravelBookingSystem.git
+git push -u origin main# Getting Started
 
 ### Reference Documentation
 
