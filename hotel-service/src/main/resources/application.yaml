@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: hotel-service
+  server:
+    port: 8082
+  # --- Nouvelle Configuration de la base de données ---
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
+    username: travel_app_user                 # <-- NOUVEL UTILISATEUR
+    password: MON_MOT_DE_PASSE_DB             # <-- NOUVEAU MOT DE PASSE (valeur réelle)
+    driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  # --- Configuration Eureka ---
+  eureka:
+    client:
+      serviceUrl:
+        defaultZone: http://localhost:8761/eureka/

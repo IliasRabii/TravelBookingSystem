@@ -1,10 +1,10 @@
-package emsi.miage.mbds.travel_booking_system;
+package emsi.miage.mbds.volservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TravelBookingSystemApplicationTests {
+class VolServiceApplicationTests {
 
     @Test
     void contextLoads() {
