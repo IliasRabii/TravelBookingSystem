@@ -2,7 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Annotation profile for booking-service" enabled="true">
+      <profile name="Annotation profile for vol-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -10,20 +10,11 @@
           <entry name="$PROJECT_DIR$/../../../../../NXP/TOOLS/REPOSITORY/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="Projet_travel_booking_system" />
+        <module name="vol-service" />
         <module name="config-service" />
+        <module name="booking-service" />
         <module name="discovery-service" />
         <module name="gateway" />
-        <module name="booking-service" />
-      </profile>
-      <profile name="Annotation profile for hotel-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$PROJECT_DIR$/../../../../../NXP/TOOLS/REPOSITORY/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-          <entry name="$PROJECT_DIR$/../../../../../NXP/TOOLS/REPOSITORY/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
-        <module name="vol-service" />
         <module name="hotel-service" />
       </profile>
     </annotationProcessing>

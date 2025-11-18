@@ -1,9 +1,0 @@
-server:
-  port: 8761 # Port standard pour Eureka
-
-eureka:
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-  instance:
-    hostname: localhost
