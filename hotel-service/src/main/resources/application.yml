@@ -15,7 +15,15 @@ spring:
 server:
   port: 8082
 # --- Configuration Eureka (à la racine aussi) ---
+# ... (Partie Spring/Server non modifiée)
+
+# --- Configuration Eureka Corrigée ---
 eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://127.0.0.1:8761/eureka/
