@@ -1,0 +1,14 @@
+# FICHIER 1 : bootstrap.yml (Vol-Service)
+spring:
+  application:
+    name: vol-service # Nom du fichier à charger depuis le dépôt Git
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-service # Nom du Config Server dans Eureka
+      # L'URL d'Eureka est nécessaire ici pour trouver le Config Server
+  eureka:
+    client:
+      service-url:
+        defaultZone: http://127.0.0.1:8761/eureka/

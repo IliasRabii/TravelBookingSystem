@@ -1,7 +1,7 @@
 spring:
   application:
     name: booking-service
-  # --- Configuration de la base de données ---
+  # --- Configuration de la base de donnï¿½es ---
   datasource:
     url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
     username: travel_app_user
@@ -11,13 +11,13 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-# --- Configuration du port (à la racine, PAS sous "spring") ---
+# --- Configuration du port (ï¿½ la racine, PAS sous "spring") ---
 server:
   port: 8083
-# --- Configuration Eureka (à la racine aussi) ---
-# ... (Partie Spring/Server non modifiée)
+# --- Configuration Eureka (ï¿½ la racine aussi) ---
+# ... (Partie Spring/Server non modifiï¿½e)
 
-# --- Configuration Eureka Corrigée ---
+# --- Configuration Eureka Corrigï¿½e ---
 eureka:
   instance:
     prefer-ip-address: true
@@ -27,3 +27,16 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://127.0.0.1:8761/eureka/
+resilience4j:
+  circuitbreaker:
+    instances:
+      # Nom de l'instance du circuit breaker (nous l'utiliserons dans le code)
+      bookingCircuitBreaker:
+        # Taux d'erreur Ã  partir duquel le disjoncteur s'ouvre (en %)
+        failureRateThreshold: 50
+        # Nombre minimal de requÃªtes pour commencer Ã  calculer le taux d'erreur
+        minimumNumberOfCalls: 5
+        # DurÃ©e pendant laquelle le disjoncteur reste ouvert avant de tester (en secondes)
+        waitDurationInOpenState: 10s
+        # Nombre de requÃªtes autorisÃ©es en Ã©tat semi-ouvert
+        permittedNumberOfCallsInHalfOpenState: 3

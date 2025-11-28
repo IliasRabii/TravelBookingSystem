@@ -1,0 +1,46 @@
+server:
+  port: 8080 # Le port unique d'accès externe
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          # Permet d'utiliser le nom du service (ex: /VOL-SERVICE/**) comme chemin
+          enabled: true
+          lowerCaseServiceId: true # Convertit le nom du service en minuscules (ex: vol-service)
+      routes:
+        # Route 1: Route vers le Vol Service
+        - id: vol-route
+          # Le chemin d'accès externe (ex: /vol-service/vols)
+          uri: lb://VOL-SERVICE
+          predicates:
+            - Path=/vol-service/**
+          # Retire le préfixe /vol-service du chemin avant d'envoyer la requête
+          filters:
+            - RewritePath=/vol-service/(?<remaining>.*), /${remaining}
+
+        # Route 2: Route vers le Hotel Service
+        - id: hotel-route
+          uri: lb://HOTEL-SERVICE
+          predicates:
+            - Path=/hotel-service/**
+          filters:
+            - RewritePath=/hotel-service/(?<remaining>.*), /${remaining}
+
+        # Route 3: Route vers le Booking Service
+        - id: booking-route
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/booking-service/**
+          filters:
+            - RewritePath=/booking-service/(?<remaining>.*), /${remaining}
+
+  # Configuration Eureka Client (pour que la Gateway trouve le Discovery Server)
+  eureka:
+    client:
+      service-url:
+        # Utilisez l'IP explicite pour la fiabilité
+        defaultZone: http://127.0.0.1:8761/eureka/
