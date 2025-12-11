@@ -1,29 +1,11 @@
+# FICHIER : vol-service/src/main/resources/application.yml (minimaliste)
+
 spring:
   application:
-    name: hotel-service
-  # --- Configuration de la base de donnÈes ---
-  datasource:
-    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
-    username: travel_app_user
-    password: MON_MOT_DE_PASSE_DB
-    driver-class-name: oracle.jdbc.OracleDriver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-# --- Configuration du port (‡ la racine, PAS sous "spring") ---
-server:
-  port: 8082
-# --- Configuration Eureka (‡ la racine aussi) ---
-# ... (Partie Spring/Server non modifiÈe)
+    name: hotel-service # Nom n√©cessaire pour les logs
 
-# --- Configuration Eureka CorrigÈe ---
-eureka:
-  instance:
-    prefer-ip-address: true
-    ip-address: 127.0.0.1
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://127.0.0.1:8761/eureka/
+server:
+  port: 8082 # Port doit rester ici pour d√©marrer l'application
+
+# TOUTES LES SECTIONS DATASOURCE, JPA, ET EUREKA DOIVENT √äTRE SUPPRIM√âES ICI.
+# (Elles sont maintenant g√©r√©es par bootstrap.yml et le d√©p√¥t Git)

@@ -1,13 +1,11 @@
-package emsi.miage.mbds.volservice.controllers;
+package emsi.miage.mbds.volservice.controllers; // Attention au nom du package (controller sans 's' de préférence)
 
-
-import emsi.miage.mbds.volservice.model.Vol;
-import emsi.miage.mbds.volservice.repository.VolRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import emsi.miage.mbds.volservice.dto.VolRequest;
+import emsi.miage.mbds.volservice.dto.VolResponse;
+import emsi.miage.mbds.volservice.service.VolService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -15,54 +13,29 @@ import java.util.List;
 @RequestMapping("/vols")
 public class VolController {
 
-    private final VolRepository volRepository;
+    private final VolService volService;
 
-    @Autowired
-    public VolController(VolRepository volRepository) {
-        this.volRepository = volRepository;
+    public VolController(VolService volService) {
+        this.volService = volService;
     }
 
-    // 1. Amélioration: GET pour tous les vols (en plus de Spring Data REST)
     @GetMapping
-    public List<Vol> getAllVols() {
-        return volRepository.findAll();
+    public List<VolResponse> getAllVols() {
+        return volService.findAll();
     }
 
-    // 2. Amélioration: GET pour un seul vol
     @GetMapping("/{id}")
-    public Vol getVolById(@PathVariable Long id) {
-        return volRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Vol non trouvé avec l'ID: " + id
-                ));
+    public VolResponse getVolById(@PathVariable Long id) {
+        return volService.findById(id);
     }
 
-    // 3. Endpoint POST pour la création (nécessaire si vous n'utilisez pas Data REST pour le POST)
     @PostMapping
-    public Vol createVol(@RequestBody Vol vol) {
-        return volRepository.save(vol);
+    public ResponseEntity<VolResponse> createVol(@RequestBody VolRequest request) {
+        return new ResponseEntity<>(volService.save(request), HttpStatus.CREATED);
     }
 
-
-    // 4. ESSENTIEL: Logique de décrémentation des sièges pour le Booking-Service
     @PostMapping("/{id}/decrement-seats")
-    public ResponseEntity<Vol> decrementerSieges(@PathVariable Long id, @RequestParam int nombre) {
-
-        // Utilisation de .map pour gérer l'Optional et la logique
-        return (ResponseEntity<Vol>) volRepository.findById(id).map(vol -> {
-            if (vol.getSiegesDisponibles() >= nombre && nombre > 0) {
-                // Décrémentation
-                vol.setSiegesDisponibles(vol.getSiegesDisponibles() - nombre);
-
-                // Sauvegarde et réponse OK (200)
-                return ResponseEntity.ok(volRepository.save(vol));
-            } else if (vol.getSiegesDisponibles() < nombre) {
-                // Si stock insuffisant, retourne 400 Bad Request (Stock Insuffisant)
-                return ResponseEntity.badRequest().body(vol);
-            } else {
-                // Si nombre est invalide (ex: 0 ou négatif)
-                return ResponseEntity.badRequest().build();
-            }
-        }).orElse(ResponseEntity.notFound().build()); // Si Vol non trouvé (404)
+    public VolResponse decrementerSieges(@PathVariable Long id, @RequestParam int nombre) {
+        return volService.decrementerSieges(id, nombre);
     }
 }

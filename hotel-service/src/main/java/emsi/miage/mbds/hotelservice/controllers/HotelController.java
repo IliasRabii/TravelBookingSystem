@@ -1,12 +1,12 @@
-package emsi.miage.mbds.hotelservice.controllers; // Note: j'ai corrigé le package en "controller"
+package emsi.miage.mbds.hotelservice.controllers;
 
-import emsi.miage.mbds.hotelservice.model.Hotel;
-import emsi.miage.mbds.hotelservice.repository.HotelRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import emsi.miage.mbds.hotelservice.dto.HotelRequest;
+import emsi.miage.mbds.hotelservice.dto.HotelResponse;
+import emsi.miage.mbds.hotelservice.service.HotelService; // NOUVEAU
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -14,54 +14,32 @@ import java.util.List;
 @RequestMapping("/hotels")
 public class HotelController {
 
-    private final HotelRepository hotelRepository;
+    private final HotelService hotelService; // Injection du Service
 
-    @Autowired
-    public HotelController(HotelRepository hotelRepository) {
-        this.hotelRepository = hotelRepository;
+    public HotelController(HotelService hotelService) {
+        this.hotelService = hotelService;
     }
 
-    // 1. GET ALL (Correct)
     @GetMapping
-    public List<Hotel> getAllHotels() {
-        return hotelRepository.findAll();
+    public List<HotelResponse> getAllHotels() {
+        return hotelService.findAll(); // Délégation complète
     }
 
-    // 2. GET BY ID (Amélioration: retourne 404 si non trouvé)
     @GetMapping("/{id}")
-    public Hotel getHotelById(@PathVariable Long id) {
-        return hotelRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Hôtel non trouvé avec l'ID: " + id
-                ));
+    public HotelResponse getHotelById(@PathVariable Long id) {
+        return hotelService.findById(id); // Délégation complète
     }
 
-    // 3. POST CREATE (Correct)
     @PostMapping
-    public Hotel createHotel(@RequestBody Hotel hotel) {
-        return hotelRepository.save(hotel);
+    public ResponseEntity<HotelResponse> createHotel(@Valid @RequestBody HotelRequest request) {
+        HotelResponse response = hotelService.save(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // 4. LOGIQUE ESSENTIELLE: Décrémentation des chambres pour le Booking-Service
+    // Endpoint de décrémentation pour le Booking-Service
     @PostMapping("/{id}/decrement-rooms")
-    public ResponseEntity<Hotel> decrementerChambres(@PathVariable Long id, @RequestParam int nombre) {
-
-        return (ResponseEntity<Hotel>) hotelRepository.findById(id).map(hotel -> {
-
-            if (nombre <= 0) {
-                return ResponseEntity.badRequest().build(); // Nombre invalide
-            }
-
-            if (hotel.getChambresDisponibles() >= nombre) {
-                // Décrémentation
-                hotel.setChambresDisponibles(hotel.getChambresDisponibles() - nombre);
-
-                // Sauvegarde et réponse OK (200)
-                return ResponseEntity.ok(hotelRepository.save(hotel));
-            } else {
-                // Stock insuffisant (400 Bad Request)
-                return ResponseEntity.badRequest().body(hotel);
-            }
-        }).orElse(ResponseEntity.notFound().build()); // Hôtel non trouvé (404)
+    public HotelResponse decrementerChambres(@PathVariable Long id, @RequestParam int nombre) {
+        // Le contrôleur ne gère plus la logique de stock ni la gestion des exceptions
+        return hotelService.decrementerChambres(id, nombre);
     }
 }

@@ -12,10 +12,13 @@
         <option value="$PROJECT_DIR$/vol-service/pom.xml" />
         <option value="$PROJECT_DIR$/hotel-service/pom.xml" />
         <option value="$PROJECT_DIR$/booking-service/pom.xml" />
+        <option value="$PROJECT_DIR$/config-repo/pom.xml" />
+        <option value="$PROJECT_DIR$/user-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
+        <option value="$PROJECT_DIR$/config-repo1/pom.xml" />
         <option value="$PROJECT_DIR$/gateway-service/pom.xml" />
       </set>
     </option>

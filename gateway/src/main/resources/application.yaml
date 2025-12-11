@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    config:
+      uri: http://localhost:8888
+    gateway:
+      default-filters:
+        - TokenRelay
+
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        - id: vol-route
+          uri: lb://VOL-SERVICE
+          predicates:
+            - Path=/vol-service/**
+          filters:
+            - RewritePath=/vol-service/(?<remaining>.*), /${remaining}
+
+        - id: hotel-route
+          uri: lb://HOTEL-SERVICE
+          predicates:
+            - Path=/hotel-service/**
+          filters:
+            - RewritePath=/hotel-service/(?<remaining>.*), /${remaining}
+
+        - id: booking-route
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/booking-service/**
+          filters:
+            - RewritePath=/booking-service/(?<remaining>.*), /${remaining}
+
+        - id: user-route
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - RewritePath=/user-service/(?<remaining>.*), /${remaining}
+  config:
+    import: "optional:configserver:"
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

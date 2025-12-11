@@ -2,7 +2,27 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="gateway" />
+        <module name="config-service" />
+        <module name="user-service" />
+      </profile>
       <profile name="Annotation profile for booking-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/../../../../../NXP/TOOLS/REPOSITORY/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+          <entry name="$PROJECT_DIR$/../../../../../NXP/TOOLS/REPOSITORY/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
+          <entry name="$PROJECT_DIR$/../../../../../NXP/TOOLS/REPOSITORY/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
+        </processorPath>
+        <module name="booking-service" />
+      </profile>
+      <profile name="Annotation profile for vol-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -11,22 +31,24 @@
         </processorPath>
         <module name="Projet_travel_booking_system" />
         <module name="vol-service" />
-        <module name="config-service" />
-        <module name="booking-service" />
         <module name="discovery-service" />
-        <module name="gateway" />
         <module name="hotel-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="config-repo" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Projet_travel_booking_system" options="-parameters" />
       <module name="booking-service" options="-parameters" />
+      <module name="config-repo" options="-parameters" />
       <module name="config-service" options="-parameters" />
       <module name="discovery-service" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="hotel-service" options="-parameters" />
+      <module name="user-service" options="-parameters" />
       <module name="vol-service" options="-parameters" />
     </option>
   </component>

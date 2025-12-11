@@ -2,90 +2,99 @@ package emsi.miage.mbds.bookingservice.service;
 
 import emsi.miage.mbds.bookingservice.client.HotelClient;
 import emsi.miage.mbds.bookingservice.client.VolClient;
+import emsi.miage.mbds.bookingservice.dto.BookingRequest;
+import emsi.miage.mbds.bookingservice.dto.BookingResponse;
+import emsi.miage.mbds.bookingservice.mapper.BookingMapper;
 import emsi.miage.mbds.bookingservice.model.Hotel;
 import emsi.miage.mbds.bookingservice.model.Vol;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import feign.FeignException; // NOUVEAU
+import feign.FeignException;
 
 @Service
 public class BookingService {
 
     private final VolClient volClient;
     private final HotelClient hotelClient;
-    private final WebClient webClientPaiement; // Doit être initialisé via un @Bean
+    private final WebClient webClientPaiement;
+    private final BookingMapper bookingMapper;
 
-    // DTO PaiementDetails doit être déplacé dans un package model ou défini comme suit pour fonctionner:
-    // Cette classe est ici pour le contexte, mais devra être implémentée (getters/setters/constructeur)
     private static class PaiementDetails {
         public PaiementDetails(double montant, Long volId, Long hotelId) {}
     }
 
     @Autowired
-    public BookingService(VolClient volClient, HotelClient hotelClient, WebClient.Builder webClientBuilder) {
+    public BookingService(VolClient volClient, HotelClient hotelClient, WebClient.Builder webClientBuilder, BookingMapper bookingMapper) {
         this.volClient = volClient;
         this.hotelClient = hotelClient;
-        // La bonne pratique est d'initialiser WebClient.Builder dans une classe de configuration @Bean
         this.webClientPaiement = webClientBuilder.baseUrl("http://paiement-service-fictif.com").build();
+        this.bookingMapper = bookingMapper;
     }
 
-    public String reserverVoyage(Long volId, Long hotelId) {
+    public BookingResponse reserverVoyage(BookingRequest request) {
 
-        // 1. Vérification des disponibilités via Feign
-        // (La gestion des erreurs Feign 404/400 doit idéalement être dans un @ControllerAdvice)
+        // 1. Appel Feign initial (Vérification des IDs et obtention des détails)
+        Vol vol = volClient.getVolById(request.getVolId());
+        Hotel hotel = hotelClient.getHotelById(request.getHotelId());
+
+        if (vol == null || hotel == null) {
+            throw new RuntimeException("Erreur: Vol ou Hôtel non trouvé.");
+        }
+
+        // 2. Simulation du Paiement
+        double prixTotal = vol.getPrix() + hotel.getPrixNuit();
+        String confirmation = simulatePaiement(prixTotal, request.getVolId(), request.getHotelId());
+
+        if (confirmation.equals("SUCCESS")) {
+
+            // 3. Logique critique protégée par le Circuit Breaker
+            String resultMsg = orchestrateBooking(request.getVolId(), request.getHotelId());
+
+            // 4. Utilisation du Mapper pour retourner le DTO final
+            return bookingMapper.toResponse(vol, hotel, resultMsg);
+
+        }
+
+        // Cas d'échec de paiement (si non simulé)
+        BookingResponse errorResponse = new BookingResponse();
+        errorResponse.setStatus("PAYMENT_FAILED");
+        errorResponse.setMessage("Paiement échoué ou non confirmé. Statut : " + confirmation);
+        return errorResponse;
+    }
+
+    // (Reste des méthodes auxiliaires)
+    private String simulatePaiement(double prixTotal, Long volId, Long hotelId) {
+        System.out.println("--- SIMULATION: Appel au service de paiement fictif ---");
+        return "SUCCESS";
+    }
+
+    @CircuitBreaker(name = "bookingCircuitBreaker", fallbackMethod = "handleBookingFailure")
+    public String orchestrateBooking(Long volId, Long hotelId) {
+
         Vol vol = volClient.getVolById(volId);
         Hotel hotel = hotelClient.getHotelById(hotelId);
 
-        if (vol == null || hotel == null) {
-            return "Erreur: Vol ou Hôtel non trouvé.";
-        }
-        // Cette vérification est redondante mais garde la logique métier
         if (vol.getSiegesDisponibles() < 1 || hotel.getChambresDisponibles() < 1) {
-            return "Erreur: Plus de places ou chambres disponibles.";
+            throw new RuntimeException("Ressources insuffisantes avant décrémentation.");
         }
 
-        double prixTotal = vol.getPrix() + hotel.getPrixNuit();
-
-        // 2. Traitement du Paiement (WebClient) - Simulation
-        String confirmation;
         try {
-            // Simulation de l'appel réel WebClient
-            // Ceci devrait idéalement être non-bloquant, mais on garde .block() pour la simplicité
-            webClientPaiement.post()
-                    .uri("/process")
-                    .bodyValue(new PaiementDetails(prixTotal, volId, hotelId))
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            confirmation = "SUCCESS"; // On simule que la réponse est bonne
-
-        } catch (Exception e) {
-            // L'exception se produira car l'URL est fictive. Nous traitons cela comme un échec.
-            System.err.println("WebClient Erreur : " + e.getMessage());
-            return "Erreur lors du traitement du paiement: " + e.getMessage();
+            volClient.decrementerSieges(volId, 1);
+            hotelClient.decrementerChambres(hotelId, 1);
+            return "Réservation complète réussie. Stocks Vol et Hôtel mis à jour.";
+        } catch (FeignException e) {
+            throw new RuntimeException("Erreur Feign lors de la décrémentation des stocks : " + e.getMessage(), e);
         }
+    }
 
-        // 3. Logique post-paiement : Décrémenter les stocks
-        if (confirmation.equals("SUCCESS")) {
-            try {
-                // Décrémenter d'une unité
-                volClient.decrementerSieges(volId, 1);
-                hotelClient.decrementerChambres(hotelId, 1);
+    public String handleBookingFailure(Long volId, Long hotelId, Throwable t) {
+        System.err.println("--- CIRCUIT BREAKER ACTIVÉ --- Erreur: " + t.getMessage());
 
-                // Ici, insérer la logique d'enregistrement de la réservation finale (BDD)
-
-                return "Réservation complète réussie. Stocks Vol et Hôtel mis à jour.";
-            } catch (FeignException e) {
-                // L'exception Feign capture les erreurs 400 (Stock insuffisant) ou 404 (ID introuvable)
-                if (e.status() == 400) {
-                    return "Échec de la réservation: Stock insuffisant. Annulation de paiement nécessaire.";
-                }
-                return "Erreur Feign lors de la décrémentation des stocks: " + e.getMessage();
-            }
+        if (t.getMessage() != null && t.getMessage().contains("Ressources insuffisantes")) {
+            return "Échec de la réservation: Stock insuffisant. Annulation de paiement nécessaire.";
         }
-
-        return "Paiement échoué ou non confirmé.";
+        return "Échec critique: Le système de réservation est en panne ou indisponible. Veuillez réessayer plus tard.";
     }
 }

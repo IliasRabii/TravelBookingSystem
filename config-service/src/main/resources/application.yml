@@ -1,0 +1,27 @@
+server:
+  port: 8070   # ✅ OK — port du Config Server (8888 est juste la convention par défaut)
+
+spring:
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: file:///C:/Users/HP/Downloads/ItPay_backend-master/travel_booking_system/config-repo
+          default-label: main     # ✅ nom de branche : doit être "main" dans ton repo
+          search-paths: .         # ✅ le root du repo
+          clone-on-start: true    # ✅ force le clone au démarrage
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

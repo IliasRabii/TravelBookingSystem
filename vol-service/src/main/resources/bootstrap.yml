@@ -1,0 +1,16 @@
+# yaml
+spring:
+  application:
+    name: vol-service
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-service # Doit trouver le serveur de config sur 8888
+  config:
+    import: "optional:configserver:"
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/ # Doit trouver Eureka sur 8761

@@ -16,6 +16,6 @@ public interface HotelClient {
     Hotel getHotelById(@PathVariable("id") Long id);
 
     @PostMapping("/hotels/{id}/decrement-rooms")
-        Hotel decrementerChambres(@PathVariable("id") Long id, @RequestParam("nombre") int nombre);
+    Hotel decrementerChambres(@PathVariable("id") Long id, @RequestParam("nombre") int nombre);
 
 }
